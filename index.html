@@ -2,287 +2,88 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LUNO - Teste MediaPipe</title>
 
-<title>LUNO - Teste da Câmera</title>
+<script
+  src="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.mjs"
+  crossorigin="anonymous">
+</script>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f7f8fb;
-    text-align: center;
-    margin: 0;
-    padding: 30px;
+body{
+  font-family:Arial,sans-serif;
+  text-align:center;
+  background:#f7f8fb;
+  padding:40px;
 }
-
-h1 {
-    margin-bottom: 10px;
+button{
+  padding:16px 24px;
+  font-size:20px;
+  border-radius:15px;
+  background:white;
+  border:2px solid #333;
 }
-
-#status {
-    font-size: 20px;
-    margin: 20px;
+video{
+  display:block;
+  width:480px;
+  max-width:90%;
+  margin:25px auto;
+  border:4px solid #333;
+  border-radius:18px;
+  transform:scaleX(-1);
 }
-
-button {
-    font-size: 20px;
-    padding: 15px 25px;
-    border: 2px solid #333;
-    border-radius: 15px;
-    background: white;
-    cursor: pointer;
-}
-
-button:disabled {
-    opacity: 0.5;
-}
-
-video {
-    margin-top: 25px;
-    width: 480px;
-    max-width: 90%;
-    border: 4px solid #333;
-    border-radius: 20px;
-    transform: scaleX(-1);
-}
-
-#resultado {
-    margin-top: 20px;
-    font-size: 22px;
-    font-weight: bold;
+#status{
+  font-size:20px;
+  margin:20px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>LUNO — Teste de Detecção dos Olhos</h1>
+<h1>LUNO — teste da câmera</h1>
 
-<div id="status">
-Etapa 1: carregando o MediaPipe...
-</div>
+<div id="status">Clique para testar somente a câmera.</div>
 
-<button id="iniciar" disabled>
-Aguarde...
-</button>
+<button id="camera">ATIVAR CÂMERA</button>
 
-<br>
+<video id="video" autoplay muted playsinline></video>
 
-<video id="video" autoplay playsinline muted></video>
-
-<div id="resultado"></div>
-
-
-<script type="module">
-
-import {
-    FaceLandmarker,
-    FilesetResolver
-}
-from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs";
-
-
-const status = document.getElementById("status");
-const iniciar = document.getElementById("iniciar");
+<script>
+const statusEl = document.getElementById("status");
 const video = document.getElementById("video");
-const resultado = document.getElementById("resultado");
 
-let faceLandmarker;
-let cameraLigada = false;
-let ultimoTempo = -1;
+document.getElementById("camera").onclick = async () => {
 
+  try {
 
-async function carregarMediaPipe() {
+    statusEl.textContent = "Solicitando câmera...";
 
-    try {
+    const stream =
+      await navigator.mediaDevices.getUserMedia({
+        video:true,
+        audio:false
+      });
 
-        status.innerText =
-        "Etapa 1: carregando arquivos do MediaPipe...";
+    video.srcObject = stream;
 
+    statusEl.textContent =
+      "✅ CÂMERA FUNCIONANDO!";
 
-        const vision =
-        await FilesetResolver.forVisionTasks(
-            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm"
-        );
+  }
 
+  catch(err){
 
-        status.innerText =
-        "Etapa 2: carregando modelo de detecção facial...";
+    statusEl.textContent =
+      "❌ Erro da câmera: " +
+      err.name +
+      " - " +
+      err.message;
 
+  }
 
-        faceLandmarker =
-        await FaceLandmarker.createFromOptions(
-            vision,
-            {
-                baseOptions: {
-                    modelAssetPath:
-                    "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
-                },
-
-                runningMode: "VIDEO",
-
-                numFaces: 1
-            }
-        );
-
-
-        status.innerText =
-        "MediaPipe carregado com sucesso!";
-
-        iniciar.disabled = false;
-
-        iniciar.innerText =
-        "Ativar câmera";
-
-    }
-
-    catch (erro) {
-
-        console.error(erro);
-
-        status.innerText =
-        "ERRO AO CARREGAR MEDIAPIPE";
-
-        resultado.innerText =
-        erro.message || erro;
-
-    }
-
-}
-
-
-
-async function ativarCamera() {
-
-    try {
-
-        status.innerText =
-        "Solicitando acesso à câmera...";
-
-
-        const stream =
-        await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: "user"
-            },
-            audio: false
-        });
-
-
-        video.srcObject = stream;
-
-        await video.play();
-
-
-        cameraLigada = true;
-
-
-        status.innerText =
-        "Câmera funcionando! Procurando seu rosto...";
-
-
-        detectar();
-
-    }
-
-    catch (erro) {
-
-        console.error(erro);
-
-        status.innerText =
-        "ERRO AO ABRIR A CÂMERA";
-
-        resultado.innerText =
-        erro.name + ": " + erro.message;
-
-    }
-
-}
-
-
-
-function detectar() {
-
-    if (!cameraLigada) return;
-
-
-    if (
-        video.readyState >= 2 &&
-        video.currentTime !== ultimoTempo
-    ) {
-
-        ultimoTempo =
-        video.currentTime;
-
-
-        try {
-
-            const deteccao =
-            faceLandmarker.detectForVideo(
-                video,
-                performance.now()
-            );
-
-
-            if (
-                deteccao.faceLandmarks &&
-                deteccao.faceLandmarks.length > 0
-            ) {
-
-                const pontos =
-                deteccao.faceLandmarks[0];
-
-
-                resultado.innerText =
-                "✓ Rosto detectado — "
-                + pontos.length
-                + " pontos faciais encontrados";
-
-
-                resultado.style.color =
-                "green";
-
-            }
-
-            else {
-
-                resultado.innerText =
-                "Câmera funcionando, mas ainda não detectei o rosto.";
-
-                resultado.style.color =
-                "black";
-
-            }
-
-        }
-
-        catch (erro) {
-
-            console.error(erro);
-
-            resultado.innerText =
-            "Erro durante a detecção: "
-            + erro.message;
-
-        }
-
-    }
-
-
-    requestAnimationFrame(detectar);
-
-}
-
-
-
-iniciar.addEventListener(
-    "click",
-    ativarCamera
-);
-
-
-carregarMediaPipe();
-
+};
 </script>
 
 </body>
