@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LUNO - Teste do Olhar</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#f7f8fb;color:#222;overflow:hidden}
+header{height:78px;background:#fff;border-bottom:1px solid #ddd;display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+button,select{font-size:17px;padding:11px 15px;border:2px solid #333;border-radius:14px;background:#fff}
+main{height:calc(100vh - 78px);display:flex;flex-direction:column;align-items:center;justify-content:center}
+#status{font-size:18px;margin:10px;text-align:center}.grid{width:min(950px,92vw);display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.target{height:180px;background:#fff;border:3px solid #333;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:25px;font-weight:bold;position:relative;overflow:hidden}
+.target.focus{outline:7px solid #bbb}.progress{position:absolute;bottom:0;left:0;height:13px;width:0;background:#555}
+#gaze{position:fixed;width:30px;height:30px;border:4px solid #111;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);z-index:999;display:none}
+#cal{position:fixed;inset:0;background:#f7f8fb;z-index:1000;display:none}.point{position:absolute;width:54px;height:54px;border-radius:50%;border:4px solid #111;background:#fff;font-size:18px}
+#msg{position:fixed;inset:0;background:rgba(255,255,255,.95);z-index:1200;display:none;align-items:center;justify-content:center;font-size:34px;font-weight:bold}
+small{margin-top:12px;text-align:center}
+</style>
+<script src="https://webgazer.cs.brown.edu/webgazer.js"></script></head>
+<body><header><b>LUNO — teste isolado de controle pelo olhar</b><div>
+Tempo: <select id="dwell"><option value="1000">1 s</option><option value="1500" selected>1,5 s</option><option value="2000">2 s</option><option value="2500">2,5 s</option></select>
+<button id="start">Ativar câmera e calibrar</button><button id="recal" disabled>Recalibrar</button></div></header>
+<main><div id="status">Ative a câmera para começar.</div><div class="grid">
+<div class="target" data-name="Área do Aluno">ÁREA DO ALUNO<div class="progress"></div></div>
+<div class="target" data-name="Jogos">JOGOS<div class="progress"></div></div>
+<div class="target" data-name="Mini Biblioteca">MINI BIBLIOTECA<div class="progress"></div></div>
+<div class="target" data-name="Treino do Olhar">TREINO DO OLHAR<div class="progress"></div></div>
+</div><small>Protótipo experimental por webcam. A precisão depende da câmera, iluminação, posição e calibração.</small></main>
+<div id="gaze"></div><div id="cal"></div><div id="msg"></div>
+<script>
+const start=document.getElementById('start'),recal=document.getElementById('recal'),statusE=document.getElementById('status'),gaze=document.getElementById('gaze'),cal=document.getElementById('cal'),msg=document.getElementById('msg');
+const points=[[8,12],[50,12],[92,12],[8,50],[50,50],[92,50],[8,88],[50,88],[92,88]];
+let gx=null,gy=null,current=null,since=0;
+function sm(a,b){return a==null?b:a*.72+b*.28}
+async function begin(){
+ try{
+  statusE.textContent='Solicitando acesso à câmera...';
+  webgazer.setRegression('ridge').setTracker('TFFacemesh');
+  await webgazer.begin();
+  webgazer.showVideo(true).showFaceOverlay(true).showFaceFeedbackBox(true).showPredictionPoints(false);
+  webgazer.setGazeListener(data=>{if(!data)return;gx=sm(gx,data.x);gy=sm(gy,data.y);gaze.style.left=gx+'px';gaze.style.top=gy+'px'});
+  start.disabled=true;recal.disabled=false;calibrate();requestAnimationFrame(loop);
+ }catch(e){statusE.textContent='Não foi possível acessar a câmera. Publique a página em HTTPS e permita a câmera no navegador.';console.error(e)}
+}
+function calibrate(){
+ cal.innerHTML='';cal.style.display='block';gaze.style.display='none';let done=0;
+ points.forEach(p=>{let b=document.createElement('button');b.className='point';b.textContent='5';b.style.left=`calc(${p[0]}% - 27px)`;b.style.top=`calc(${p[1]}% - 27px)`;let n=0;
+ b.onclick=()=>{n++;b.textContent=5-n;if(n>=5){b.disabled=true;b.style.opacity=.2;done++;if(done===9)setTimeout(()=>{cal.style.display='none';gaze.style.display='block';statusE.textContent='Calibrado. Mantenha o olhar sobre uma opção até a barra completar.'},300)}};cal.appendChild(b)});
+}
+function reset(){if(current){current.classList.remove('focus');current.querySelector('.progress').style.width='0'}current=null;since=0}
+function loop(t){
+ if(gx!=null&&gy!=null&&cal.style.display==='none'){
+  let e=document.elementFromPoint(gx,gy),tar=e&&e.closest?e.closest('.target'):null;
+  if(tar!==current){reset();if(tar){current=tar;since=t;tar.classList.add('focus')}}
+  if(current){let d=+document.getElementById('dwell').value,p=(t-since)/d;current.querySelector('.progress').style.width=Math.min(100,p*100)+'%';
+   if(p>=1){let name=current.dataset.name;reset();msg.textContent='Selecionado pelo olhar: '+name;msg.style.display='flex';setTimeout(()=>msg.style.display='none',1100)}
+  }
+ }
+ requestAnimationFrame(loop);
+}
+start.onclick=begin;recal.onclick=()=>{if(webgazer.clearData)webgazer.clearData();calibrate()};
+</script></body></html>
