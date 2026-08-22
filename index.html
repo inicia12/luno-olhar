@@ -1,1149 +1,287 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LUNO — Teste do Olhar com MediaPipe</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LUNO - Teste da Câmera</title>
 
 <style>
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f7f8fb;
-  color:#222;
-  overflow:hidden;
+body {
+    font-family: Arial, sans-serif;
+    background: #f7f8fb;
+    text-align: center;
+    margin: 0;
+    padding: 30px;
 }
 
-header{
-  height:82px;
-  background:white;
-  border-bottom:1px solid #ddd;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 22px;
-  gap:18px;
+h1 {
+    margin-bottom: 10px;
 }
 
-header b{font-size:18px}
-
-.controls{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
+#status {
+    font-size: 20px;
+    margin: 20px;
 }
 
-button,select{
-  font-size:16px;
-  padding:11px 14px;
-  border:2px solid #333;
-  border-radius:14px;
-  background:white;
-  cursor:pointer;
+button {
+    font-size: 20px;
+    padding: 15px 25px;
+    border: 2px solid #333;
+    border-radius: 15px;
+    background: white;
+    cursor: pointer;
 }
 
-button:disabled{
-  opacity:.45;
-  cursor:not-allowed;
+button:disabled {
+    opacity: 0.5;
 }
 
-main{
-  height:calc(100vh - 82px);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:14px;
+video {
+    margin-top: 25px;
+    width: 480px;
+    max-width: 90%;
+    border: 4px solid #333;
+    border-radius: 20px;
+    transform: scaleX(-1);
 }
 
-#status{
-  font-size:17px;
-  margin:6px 0 14px;
-  text-align:center;
-  max-width:1000px;
-}
-
-.grid{
-  width:min(980px,92vw);
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
-}
-
-.target{
-  height:176px;
-  background:white;
-  border:3px solid #333;
-  border-radius:24px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:25px;
-  font-weight:800;
-  position:relative;
-  overflow:hidden;
-}
-
-.target.focus{
-  outline:7px solid #b8b5ff;
-  outline-offset:2px;
-}
-
-.progress{
-  position:absolute;
-  bottom:0;
-  left:0;
-  height:14px;
-  width:0;
-  background:#5e58d8;
-}
-
-#gaze{
-  position:fixed;
-  width:34px;
-  height:34px;
-  border:5px solid #625cda;
-  background:rgba(255,255,255,.45);
-  border-radius:50%;
-  pointer-events:none;
-  transform:translate(-50%,-50%);
-  z-index:999;
-  display:none;
-}
-
-#cal{
-  position:fixed;
-  inset:0;
-  background:#f7f8fb;
-  z-index:1200;
-  display:none;
-}
-
-#calText{
-  position:absolute;
-  top:18px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:20px;
-  font-weight:700;
-  text-align:center;
-  width:90%;
-}
-
-.point{
-  position:absolute;
-  width:66px;
-  height:66px;
-  border-radius:50%;
-  border:5px solid #625cda;
-  background:white;
-  font-size:18px;
-  font-weight:900;
-}
-
-#msg{
-  position:fixed;
-  inset:0;
-  background:rgba(255,255,255,.96);
-  z-index:1500;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  font-size:34px;
-  font-weight:bold;
-  padding:40px;
-}
-
-#videoBox{
-  position:fixed;
-  right:14px;
-  bottom:14px;
-  width:180px;
-  height:135px;
-  border:3px solid #333;
-  border-radius:16px;
-  overflow:hidden;
-  background:#111;
-  z-index:800;
-  display:none;
-}
-
-#webcam{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  transform:scaleX(-1);
-}
-
-small{
-  margin-top:11px;
-  text-align:center;
-  max-width:900px;
+#resultado {
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-  <b>LUNO — teste isolado de controle pelo olhar (MediaPipe)</b>
-
-  <div class="controls">
-    <label>
-      Tempo:
-      <select id="dwell">
-        <option value="1000">1 s</option>
-        <option value="1500" selected>1,5 s</option>
-        <option value="2000">2 s</option>
-        <option value="2500">2,5 s</option>
-      </select>
-    </label>
-
-    <button id="start" disabled>Carregando modelo...</button>
-    <button id="recal" disabled>Recalibrar</button>
-  </div>
-</header>
-
-<main>
+<h1>LUNO — Teste de Detecção dos Olhos</h1>
 
 <div id="status">
-Carregando o detector dos olhos. Aguarde alguns segundos...
+Etapa 1: carregando o MediaPipe...
 </div>
 
-<div class="grid">
+<button id="iniciar" disabled>
+Aguarde...
+</button>
 
-<div class="target" data-name="Área do Aluno">
-ÁREA DO ALUNO
-<div class="progress"></div>
-</div>
+<br>
 
-<div class="target" data-name="Jogos">
-JOGOS
-<div class="progress"></div>
-</div>
+<video id="video" autoplay playsinline muted></video>
 
-<div class="target" data-name="Mini Biblioteca">
-MINI BIBLIOTECA
-<div class="progress"></div>
-</div>
-
-<div class="target" data-name="Treino do Olhar">
-TREINO DO OLHAR
-<div class="progress"></div>
-</div>
-
-</div>
-
-<small>
-Protótipo experimental por webcam. A precisão depende da iluminação,
-da câmera, da posição da cabeça e da calibração individual.
-</small>
-
-</main>
-
-<div id="gaze"></div>
-
-<div id="cal">
-<div id="calText">
-Olhe para o ponto e clique 5 vezes sem desviar o olhar.
-</div>
-</div>
-
-<div id="msg"></div>
-
-<div id="videoBox">
-<video id="webcam" autoplay muted playsinline></video>
-</div>
+<div id="resultado"></div>
 
 
 <script type="module">
 
-import vision from
-"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/+esm";
-
-const {
-FaceLandmarker,
-FilesetResolver
-} = vision;
-
-
-const startBtn = document.getElementById("start");
-const recalBtn = document.getElementById("recal");
-const statusEl = document.getElementById("status");
-const video = document.getElementById("webcam");
-const videoBox = document.getElementById("videoBox");
-const gaze = document.getElementById("gaze");
-const cal = document.getElementById("cal");
-const msg = document.getElementById("msg");
-
-let landmarker = null;
-let running = false;
-let lastVideoTime = -1;
-
-let rawFeature = null;
-
-let gx = null;
-let gy = null;
-
-let coeffX = null;
-let coeffY = null;
-
-let current = null;
-let since = 0;
-let lockedTarget = null;
-
-let samples = [];
-
-
-const points = [
-[8,13],
-[50,13],
-[92,13],
-
-[8,50],
-[50,50],
-[92,50],
-
-[8,87],
-[50,87],
-[92,87]
-];
-
-
-function setStatus(t){
-statusEl.textContent = t;
+import {
+    FaceLandmarker,
+    FilesetResolver
 }
+from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs";
 
 
-async function initModel(){
+const status = document.getElementById("status");
+const iniciar = document.getElementById("iniciar");
+const video = document.getElementById("video");
+const resultado = document.getElementById("resultado");
 
-try{
+let faceLandmarker;
+let cameraLigada = false;
+let ultimoTempo = -1;
 
-const fileset =
-await FilesetResolver.forVisionTasks(
-"https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm"
-);
 
-landmarker =
-await FaceLandmarker.createFromOptions(
-fileset,
-{
-baseOptions:{
-modelAssetPath:
-"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-delegate:"GPU"
-},
+async function carregarMediaPipe() {
 
-runningMode:"VIDEO",
-numFaces:1
-}
-);
+    try {
 
-startBtn.disabled = false;
+        status.innerText =
+        "Etapa 1: carregando arquivos do MediaPipe...";
 
-startBtn.textContent =
-"Ativar câmera e calibrar";
 
-setStatus(
-'Modelo carregado. Clique em "Ativar câmera e calibrar".'
-);
+        const vision =
+        await FilesetResolver.forVisionTasks(
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm"
+        );
 
-}
 
-catch(e){
+        status.innerText =
+        "Etapa 2: carregando modelo de detecção facial...";
 
-console.error(e);
 
-startBtn.textContent =
-"Modelo não carregou";
+        faceLandmarker =
+        await FaceLandmarker.createFromOptions(
+            vision,
+            {
+                baseOptions: {
+                    modelAssetPath:
+                    "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+                },
 
-setStatus(
-"Erro ao carregar o MediaPipe. Verifique a internet e atualize a página."
-);
+                runningMode: "VIDEO",
 
-}
+                numFaces: 1
+            }
+        );
+
+
+        status.innerText =
+        "MediaPipe carregado com sucesso!";
+
+        iniciar.disabled = false;
+
+        iniciar.innerText =
+        "Ativar câmera";
+
+    }
+
+    catch (erro) {
+
+        console.error(erro);
+
+        status.innerText =
+        "ERRO AO CARREGAR MEDIAPIPE";
+
+        resultado.innerText =
+        erro.message || erro;
+
+    }
 
 }
 
 
-function irisCenter(lm,ids){
 
-let x=0;
-let y=0;
+async function ativarCamera() {
 
-ids.forEach(i=>{
-x += lm[i].x;
-y += lm[i].y;
-});
+    try {
 
-return{
-x:x/ids.length,
-y:y/ids.length
-};
-
-}
+        status.innerText =
+        "Solicitando acesso à câmera...";
 
 
-function extractFeature(lm){
-
-if(!lm || lm.length < 478)
-return null;
-
-
-const li =
-irisCenter(
-lm,
-[468,469,470,471,472]
-);
-
-const ri =
-irisCenter(
-lm,
-[473,474,475,476,477]
-);
+        const stream =
+        await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: "user"
+            },
+            audio: false
+        });
 
 
-const lOuter = lm[33];
-const lInner = lm[133];
-const lTop = lm[159];
-const lBottom = lm[145];
+        video.srcObject = stream;
 
-const rInner = lm[362];
-const rOuter = lm[263];
-const rTop = lm[386];
-const rBottom = lm[374];
+        await video.play();
 
 
-const lMinX =
-Math.min(lOuter.x,lInner.x);
-
-const lMaxX =
-Math.max(lOuter.x,lInner.x);
-
-const rMinX =
-Math.min(rOuter.x,rInner.x);
-
-const rMaxX =
-Math.max(rOuter.x,rInner.x);
+        cameraLigada = true;
 
 
-const lx =
-(li.x-lMinX)/
-(lMaxX-lMinX+1e-6);
-
-const rx =
-(ri.x-rMinX)/
-(rMaxX-rMinX+1e-6);
+        status.innerText =
+        "Câmera funcionando! Procurando seu rosto...";
 
 
-const ly =
-(li.y-Math.min(lTop.y,lBottom.y))/
-(Math.abs(lBottom.y-lTop.y)+1e-6);
+        detectar();
 
-const ry =
-(ri.y-Math.min(rTop.y,rBottom.y))/
-(Math.abs(rBottom.y-rTop.y)+1e-6);
+    }
 
+    catch (erro) {
 
-return{
-x:(lx+rx)/2,
-y:(ly+ry)/2
-};
+        console.error(erro);
+
+        status.innerText =
+        "ERRO AO ABRIR A CÂMERA";
+
+        resultado.innerText =
+        erro.name + ": " + erro.message;
+
+    }
 
 }
 
 
-async function startCamera(){
 
-try{
+function detectar() {
 
-if(
-!navigator.mediaDevices ||
-!navigator.mediaDevices.getUserMedia
-){
-
-throw new Error(
-"Este navegador não oferece acesso à câmera."
-);
-
-}
+    if (!cameraLigada) return;
 
 
-const stream =
-await navigator.mediaDevices.getUserMedia({
+    if (
+        video.readyState >= 2 &&
+        video.currentTime !== ultimoTempo
+    ) {
 
-video:{
-facingMode:"user",
-width:{ideal:640},
-height:{ideal:480}
-},
-
-audio:false
-
-});
+        ultimoTempo =
+        video.currentTime;
 
 
-video.srcObject = stream;
+        try {
 
-await video.play();
-
-videoBox.style.display =
-"block";
-
-running = true;
-
-recalBtn.disabled = false;
-
-setStatus(
-"Câmera iniciada. Mantenha o rosto centralizado."
-);
-
-requestAnimationFrame(
-predictLoop
-);
-
-setTimeout(
-calibrate,
-1000
-);
-
-}
-
-catch(e){
-
-console.error(e);
-
-let detail =
-e && e.name
-?
-e.name + ": " + e.message
-:
-String(e);
+            const deteccao =
+            faceLandmarker.detectForVideo(
+                video,
+                performance.now()
+            );
 
 
-setStatus(
-"A câmera não abriu. Erro: "
-+ detail +
-". Verifique a permissão da câmera para este site."
-);
+            if (
+                deteccao.faceLandmarks &&
+                deteccao.faceLandmarks.length > 0
+            ) {
 
-}
+                const pontos =
+                deteccao.faceLandmarks[0];
+
+
+                resultado.innerText =
+                "✓ Rosto detectado — "
+                + pontos.length
+                + " pontos faciais encontrados";
+
+
+                resultado.style.color =
+                "green";
+
+            }
+
+            else {
+
+                resultado.innerText =
+                "Câmera funcionando, mas ainda não detectei o rosto.";
+
+                resultado.style.color =
+                "black";
+
+            }
+
+        }
+
+        catch (erro) {
+
+            console.error(erro);
+
+            resultado.innerText =
+            "Erro durante a detecção: "
+            + erro.message;
+
+        }
+
+    }
+
+
+    requestAnimationFrame(detectar);
 
 }
 
 
-function predictLoop(){
 
-if(!running)
-return;
-
-
-if(
-video.readyState >= 2 &&
-video.currentTime !== lastVideoTime
-){
-
-lastVideoTime =
-video.currentTime;
-
-
-try{
-
-const result =
-landmarker.detectForVideo(
-video,
-performance.now()
+iniciar.addEventListener(
+    "click",
+    ativarCamera
 );
 
 
-if(
-result.faceLandmarks &&
-result.faceLandmarks.length
-){
-
-rawFeature =
-extractFeature(
-result.faceLandmarks[0]
-);
-
-
-if(
-rawFeature &&
-coeffX &&
-coeffY
-){
-
-const px =
-predict(
-coeffX,
-rawFeature.x,
-rawFeature.y
-);
-
-const py =
-predict(
-coeffY,
-rawFeature.x,
-rawFeature.y
-);
-
-
-const cx =
-Math.max(
-5,
-Math.min(
-innerWidth-5,
-px
-)
-);
-
-const cy =
-Math.max(
-5,
-Math.min(
-innerHeight-5,
-py
-)
-);
-
-
-gx =
-gx==null
-?
-cx
-:
-gx*.78 + cx*.22;
-
-
-gy =
-gy==null
-?
-cy
-:
-gy*.78 + cy*.22;
-
-
-gaze.style.left =
-gx+"px";
-
-gaze.style.top =
-gy+"px";
-
-}
-
-}
-
-}
-
-catch(e){
-
-console.error(e);
-
-}
-
-}
-
-requestAnimationFrame(
-predictLoop
-);
-
-}
-
-
-function calibrate(){
-
-coeffX = null;
-coeffY = null;
-
-samples = [];
-
-gx = null;
-gy = null;
-
-gaze.style.display =
-"none";
-
-
-cal.innerHTML =
-'<div id="calText">Olhe para o ponto e clique 5 vezes sem desviar o olhar.</div>';
-
-cal.style.display =
-"block";
-
-
-let completed = 0;
-
-
-points.forEach((p)=>{
-
-const b =
-document.createElement("button");
-
-b.className =
-"point";
-
-b.textContent =
-"5";
-
-b.style.left =
-`calc(${p[0]}% - 33px)`;
-
-b.style.top =
-`calc(${p[1]}% - 33px)`;
-
-
-let n = 0;
-
-
-b.onclick = ()=>{
-
-if(!rawFeature){
-
-document.getElementById(
-"calText"
-).textContent =
-"Ainda não detectei seus olhos. Fique de frente para a câmera e tente novamente.";
-
-return;
-
-}
-
-
-samples.push({
-
-fx:rawFeature.x,
-fy:rawFeature.y,
-
-sx:
-p[0]/100*innerWidth,
-
-sy:
-p[1]/100*innerHeight
-
-});
-
-
-n++;
-
-b.textContent =
-String(5-n);
-
-
-if(n>=5){
-
-b.disabled = true;
-
-b.style.opacity =
-".18";
-
-completed++;
-
-
-if(
-completed ===
-points.length
-){
-
-finishCalibration();
-
-}
-
-}
-
-};
-
-
-cal.appendChild(b);
-
-});
-
-}
-
-
-function solve3(A,b){
-
-const M =
-A.map(
-(r,i)=>
-[
-r[0],
-r[1],
-r[2],
-b[i]
-]
-);
-
-
-for(
-let i=0;
-i<3;
-i++
-){
-
-let max=i;
-
-
-for(
-let j=i+1;
-j<3;
-j++
-)
-
-if(
-Math.abs(M[j][i]) >
-Math.abs(M[max][i])
-)
-
-max=j;
-
-
-[M[i],M[max]] =
-[M[max],M[i]];
-
-
-if(
-Math.abs(M[i][i]) <
-1e-9
-)
-
-return null;
-
-
-const d =
-M[i][i];
-
-
-for(
-let k=i;
-k<4;
-k++
-)
-
-M[i][k] /= d;
-
-
-for(
-let j=0;
-j<3;
-j++
-){
-
-if(j===i)
-continue;
-
-
-const f =
-M[j][i];
-
-
-for(
-let k=i;
-k<4;
-k++
-)
-
-M[j][k] -=
-f*M[i][k];
-
-}
-
-}
-
-
-return[
-M[0][3],
-M[1][3],
-M[2][3]
-];
-
-}
-
-
-function fit(field){
-
-let n=samples.length;
-
-let sx=0;
-let sy=0;
-
-let sxx=0;
-let syy=0;
-let sxy=0;
-
-let st=0;
-let sxt=0;
-let syt=0;
-
-
-samples.forEach(s=>{
-
-const x=s.fx;
-const y=s.fy;
-const t=s[field];
-
-sx+=x;
-sy+=y;
-
-sxx+=x*x;
-syy+=y*y;
-sxy+=x*y;
-
-st+=t;
-sxt+=x*t;
-syt+=y*t;
-
-});
-
-
-return solve3(
-
-[
-[n,sx,sy],
-[sx,sxx,sxy],
-[sy,sxy,syy]
-],
-
-[
-st,
-sxt,
-syt
-]
-
-);
-
-}
-
-
-function predict(c,x,y){
-
-return(
-c[0] +
-c[1]*x +
-c[2]*y
-);
-
-}
-
-
-function finishCalibration(){
-
-coeffX =
-fit("sx");
-
-coeffY =
-fit("sy");
-
-
-if(
-!coeffX ||
-!coeffY
-){
-
-setStatus(
-"A calibração não ficou estável. Clique em Recalibrar e tente novamente."
-);
-
-cal.style.display =
-"none";
-
-return;
-
-}
-
-
-cal.style.display =
-"none";
-
-gaze.style.display =
-"block";
-
-
-setStatus(
-"Calibrado. Agora apenas OLHE para um botão e mantenha o olhar até a barra completar."
-);
-
-
-requestAnimationFrame(
-dwellLoop
-);
-
-}
-
-
-function resetTarget(){
-
-if(current){
-
-current.classList.remove(
-"focus"
-);
-
-current.querySelector(
-".progress"
-).style.width =
-"0%";
-
-}
-
-current=null;
-since=0;
-
-}
-
-
-function dwellLoop(t){
-
-if(
-coeffX &&
-coeffY &&
-gx!=null &&
-gy!=null
-){
-
-const el =
-document.elementFromPoint(
-gx,
-gy
-);
-
-
-const target =
-el && el.closest
-?
-el.closest(".target")
-:
-null;
-
-
-if(
-lockedTarget &&
-target !== lockedTarget
-)
-
-lockedTarget = null;
-
-
-if(
-target !== current
-){
-
-resetTarget();
-
-
-if(
-target &&
-target !== lockedTarget
-){
-
-current =
-target;
-
-since =
-t;
-
-target.classList.add(
-"focus"
-);
-
-}
-
-}
-
-
-if(
-current &&
-current !== lockedTarget
-){
-
-const dwell =
-Number(
-document.getElementById(
-"dwell"
-).value
-);
-
-
-const pct =
-Math.min(
-1,
-(t-since)/dwell
-);
-
-
-current.querySelector(
-".progress"
-).style.width =
-(pct*100)+"%";
-
-
-if(pct>=1){
-
-const name =
-current.dataset.name;
-
-
-lockedTarget =
-current;
-
-
-resetTarget();
-
-
-msg.textContent =
-"Selecionado pelo olhar: "
-+ name;
-
-
-msg.style.display =
-"flex";
-
-
-setTimeout(
-()=>{
-msg.style.display =
-"none";
-},
-1200
-);
-
-}
-
-}
-
-}
-
-
-requestAnimationFrame(
-dwellLoop
-);
-
-}
-
-
-startBtn.onclick =
-()=>{
-
-startBtn.disabled =
-true;
-
-startBtn.textContent =
-"Abrindo câmera...";
-
-startCamera();
-
-};
-
-
-recalBtn.onclick =
-calibrate;
-
-
-initModel();
+carregarMediaPipe();
 
 </script>
 
