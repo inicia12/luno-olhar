@@ -1,709 +1,486 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>LUNO — Teste do Olhar</title>
+<title>LUNO — Calibração do Olhar</title>
 
 <script src="./webgazer.js"></script>
 
 <style>
-
-*{
-    box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
-    margin:0;
-    font-family:Arial,sans-serif;
-    background:#f5f6fb;
-    text-align:center;
-    color:#222;
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f6f7fb;
+  color:#222;
+  text-align:center;
 }
 
 header{
-    background:white;
-    padding:20px;
-    border-bottom:1px solid #ddd;
-    position:relative;
-    z-index:100;
+  background:#fff;
+  border-bottom:1px solid #ddd;
+  padding:18px;
 }
 
 h1{
-    margin:0 0 15px;
+  margin:0 0 10px;
 }
 
 #status{
-    font-size:18px;
-    font-weight:bold;
-    margin:12px;
+  font-size:18px;
+  font-weight:bold;
+  margin:10px 0;
 }
 
 #coords{
-    margin:10px;
-    font-size:16px;
+  font-size:16px;
+  margin:8px 0 14px;
 }
 
-#iniciar{
-    font-size:18px;
-    padding:14px 25px;
-    border:2px solid #333;
-    border-radius:15px;
-    background:white;
-    cursor:pointer;
-}
-
-main{
-    max-width:1000px;
-    margin:auto;
-    padding:25px;
-    position:relative;
-    z-index:100;
-}
-
-.grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:20px;
-}
-
-.area{
-    position:relative;
-    min-height:180px;
-
-    border:3px solid #333;
-    border-radius:25px;
-
-    background:white;
-
-    font-size:24px;
-    font-weight:bold;
-
-    cursor:pointer;
-
-    z-index:200;
-
-    overflow:hidden;
-}
-
-.area:active{
-    transform:scale(.98);
-}
-
-.area.olhando{
-    outline:8px solid rgba(98,92,218,.35);
-}
-
-.barra{
-    position:absolute;
-    bottom:0;
-    left:0;
-
-    height:15px;
-    width:0%;
-
-    background:#625cda;
+button{
+  font-size:18px;
+  padding:12px 20px;
+  border:2px solid #333;
+  border-radius:14px;
+  background:#fff;
+  cursor:pointer;
 }
 
 #pontoOlhar{
-    position:fixed;
-
-    width:35px;
-    height:35px;
-
-    border-radius:50%;
-
-    border:5px solid red;
-
-    background:rgba(255,255,255,.5);
-
-    pointer-events:none;
-
-    transform:translate(-50%,-50%);
-
-    z-index:99999;
-
-    display:none;
+  position:fixed;
+  width:34px;
+  height:34px;
+  border:5px solid red;
+  border-radius:50%;
+  background:rgba(255,255,255,.5);
+  pointer-events:none;
+  transform:translate(-50%,-50%);
+  z-index:99999;
+  display:none;
 }
 
-#mensagem{
-    position:fixed;
-
-    inset:0;
-
-    background:rgba(255,255,255,.95);
-
-    display:none;
-
-    align-items:center;
-    justify-content:center;
-
-    z-index:999999;
-
-    font-size:32px;
-    font-weight:bold;
-
-    padding:30px;
+#calibracao{
+  position:fixed;
+  inset:0;
+  background:#f6f7fb;
+  z-index:9999;
+  display:none;
 }
 
+#instrucao{
+  position:absolute;
+  top:16px;
+  left:0;
+  right:0;
+  font-size:20px;
+  font-weight:bold;
+  padding:0 20px;
+}
 
-/* IMPORTANTE:
-   impede a câmera do WebGazer
-   de bloquear os botões */
+.ponto{
+  position:absolute;
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  background:#625cda;
+  color:white;
+  border:5px solid white;
+  box-shadow:0 0 0 3px #333;
+  font-weight:bold;
+  font-size:18px;
+}
 
+#p1{left:6%;top:13%}
+#p2{left:47%;top:13%}
+#p3{right:6%;top:13%}
+
+#p4{left:6%;top:47%}
+#p5{left:47%;top:47%}
+#p6{right:6%;top:47%}
+
+#p7{left:6%;bottom:7%}
+#p8{left:47%;bottom:7%}
+#p9{right:6%;bottom:7%}
+
+#areaTeste{
+  max-width:900px;
+  margin:30px auto;
+  padding:20px;
+}
+
+.caixa{
+  border:3px solid #333;
+  border-radius:24px;
+  background:#fff;
+  min-height:180px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:25px;
+  font-weight:bold;
+}
+
+.good{color:green}
+.bad{color:#b00020}
+
+/* impede o vídeo/overlays do WebGazer de bloquear a página */
 #webgazerVideoContainer,
 #webgazerVideoFeed,
 #webgazerFaceOverlay,
 #webgazerFaceFeedbackBox{
-
-    pointer-events:none !important;
+  pointer-events:none !important;
 }
-
-
-/* CELULAR */
-
-@media(max-width:700px){
-
-    .grid{
-        grid-template-columns:1fr;
-    }
-
-    .area{
-        min-height:120px;
-    }
-
-}
-
 </style>
-
 </head>
-
 
 <body>
 
-
 <header>
+  <h1>LUNO — Teste de Rastreamento do Olhar</h1>
 
-<h1>
-LUNO — Teste do Controle pelo Olhar
-</h1>
+  <div id="status">
+    Clique em ATIVAR CÂMERA.
+  </div>
 
-<div id="status">
-PRIMEIRO TESTE: toque em um dos botões abaixo.
-</div>
+  <div id="coords">
+    Olhar: aguardando dados...
+  </div>
 
-<div id="coords">
-Olhar: ainda não iniciado
-</div>
-
-<button id="iniciar">
-ATIVAR CÂMERA E OLHAR
-</button>
-
+  <button id="iniciar">
+    ATIVAR CÂMERA
+  </button>
 </header>
 
-
-<main>
-
-<div class="grid">
-
-
-<button
-class="area"
-data-nome="ÁREA DO ALUNO">
-
-ÁREA DO ALUNO
-
-<div class="barra"></div>
-
-</button>
-
-
-<button
-class="area"
-data-nome="JOGOS">
-
-JOGOS
-
-<div class="barra"></div>
-
-</button>
-
-
-<button
-class="area"
-data-nome="MINI BIBLIOTECA">
-
-MINI BIBLIOTECA
-
-<div class="barra"></div>
-
-</button>
-
-
-<button
-class="area"
-data-nome="TREINO DO OLHAR">
-
-TREINO DO OLHAR
-
-<div class="barra"></div>
-
-</button>
-
-
+<div id="areaTeste">
+  <div class="caixa">
+    Depois da calibração, olhe para diferentes partes da tela e veja se o ponto vermelho acompanha.
+  </div>
 </div>
-
-</main>
-
 
 <div id="pontoOlhar"></div>
 
-<div id="mensagem"></div>
+<div id="calibracao">
 
+  <div id="instrucao">
+    Olhe para cada ponto e toque/clique nele 5 vezes.
+  </div>
+
+  <button class="ponto" id="p1">5</button>
+  <button class="ponto" id="p2">5</button>
+  <button class="ponto" id="p3">5</button>
+
+  <button class="ponto" id="p4">5</button>
+  <button class="ponto" id="p5">5</button>
+  <button class="ponto" id="p6">5</button>
+
+  <button class="ponto" id="p7">5</button>
+  <button class="ponto" id="p8">5</button>
+  <button class="ponto" id="p9">5</button>
+
+</div>
 
 <script>
 
-const status =
+const statusEl =
 document.getElementById("status");
 
-const coords =
+const coordsEl =
 document.getElementById("coords");
 
 const iniciar =
 document.getElementById("iniciar");
 
+const calibracao =
+document.getElementById("calibracao");
+
 const pontoOlhar =
 document.getElementById("pontoOlhar");
 
-const mensagem =
-document.getElementById("mensagem");
-
-
-let alvoAtual = null;
-
-let inicioOlhar = 0;
-
 let xSuave = null;
-
 let ySuave = null;
 
-let bloqueado = false;
+let gazeRecebido = false;
 
 
-const TEMPO =
-1500;
+function iniciarCalibracao(){
 
+  calibracao.style.display =
+  "block";
 
-/* ============================= */
-/* TESTE DOS BOTÕES               */
-/* ============================= */
+  pontoOlhar.style.display =
+  "none";
 
+  const pontos =
+  document.querySelectorAll(".ponto");
 
-document
-.querySelectorAll(".area")
-.forEach(botao => {
+  let concluidos = 0;
 
-    botao.addEventListener(
-        "click",
-        function(){
+  pontos.forEach(ponto=>{
 
-            selecionar(
-                botao.dataset.nome,
-                "TOQUE / MOUSE"
-            );
+    ponto.dataset.cliques =
+    "0";
+
+    ponto.textContent =
+    "5";
+
+    ponto.disabled =
+    false;
+
+    ponto.style.opacity =
+    "1";
+
+    ponto.onclick =
+    function(){
+
+      let n =
+      Number(
+        ponto.dataset.cliques
+      );
+
+      n++;
+
+      ponto.dataset.cliques =
+      String(n);
+
+      ponto.textContent =
+      String(
+        Math.max(
+          0,
+          5-n
+        )
+      );
+
+      if(n >= 5){
+
+        ponto.disabled =
+        true;
+
+        ponto.style.opacity =
+        ".18";
+
+        concluidos++;
+
+        if(
+          concluidos ===
+          pontos.length
+        ){
+
+          calibracao.style.display =
+          "none";
+
+          pontoOlhar.style.display =
+          "block";
+
+          statusEl.textContent =
+          "✓ CALIBRAÇÃO CONCLUÍDA — agora mova apenas os olhos.";
+
+          statusEl.className =
+          "good";
 
         }
-    );
 
-});
+      }
 
+    };
 
-function selecionar(
-nome,
-origem
-){
-
-    if(bloqueado)
-        return;
-
-
-    bloqueado =
-    true;
-
-
-    mensagem.innerHTML =
-
-    "✓ " +
-    nome +
-
-    "<br><br>" +
-
-    "<span style='font-size:20px'>" +
-
-    "FUNCIONOU POR " +
-    origem +
-
-    "</span>";
-
-
-    mensagem.style.display =
-    "flex";
-
-
-    setTimeout(
-        function(){
-
-            mensagem.style.display =
-            "none";
-
-            bloqueado =
-            false;
-
-        },
-
-        1200
-    );
+  });
 
 }
 
 
-/* ============================= */
-/* RASTREAMENTO DO OLHAR          */
-/* ============================= */
+async function ativarCamera(){
+
+  if(
+    typeof webgazer
+    ===
+    "undefined"
+  ){
+
+    statusEl.textContent =
+    "❌ WebGazer não carregou.";
+
+    statusEl.className =
+    "bad";
+
+    return;
+  }
 
 
-async function ativarOlhar(){
+  try{
 
-    if(
-        typeof webgazer
-        ===
-        "undefined"
-    ){
+    iniciar.disabled =
+    true;
 
-        status.innerText =
-        "❌ WebGazer não carregou.";
+    statusEl.textContent =
+    "Solicitando acesso à câmera...";
 
-        return;
-    }
+
+    webgazer
+    .saveDataAcrossSessions(false)
+    .showPredictionPoints(false);
+
+
+    await webgazer.begin();
 
 
     try{
+      webgazer.showVideoPreview(true);
+    }catch(e){}
 
-        iniciar.disabled =
+
+    try{
+      webgazer.showFaceOverlay(false);
+    }catch(e){}
+
+
+    try{
+      webgazer.showFaceFeedbackBox(false);
+    }catch(e){}
+
+
+    statusEl.textContent =
+    "✓ CÂMERA ABERTA — recebendo dados do olhar...";
+
+    statusEl.className =
+    "good";
+
+
+    webgazer.setGazeListener(
+
+      function(data){
+
+        if(!data){
+
+          coordsEl.textContent =
+          "Câmera ativa, mas ainda sem coordenadas.";
+
+          return;
+
+        }
+
+
+        gazeRecebido =
         true;
 
 
-        status.innerText =
-        "Solicitando câmera...";
+        if(
+          xSuave === null
+        ){
 
+          xSuave =
+          data.x;
 
-        webgazer
-        .saveDataAcrossSessions(false)
-        .showPredictionPoints(false);
-
-
-        await webgazer.begin();
-
-
-        /* deixa câmera visível */
-
-        try{
-
-            webgazer
-            .showVideoPreview(true);
+          ySuave =
+          data.y;
 
         }
-        catch(e){}
+
+        else{
+
+          xSuave =
+          xSuave * 0.75
+          +
+          data.x * 0.25;
 
 
-        /* remove overlays que podem
-           atrapalhar os botões */
-
-        try{
-
-            webgazer
-            .showFaceOverlay(false);
-
-        }
-        catch(e){}
-
-
-        try{
-
-            webgazer
-            .showFaceFeedbackBox(false);
+          ySuave =
+          ySuave * 0.75
+          +
+          data.y * 0.25;
 
         }
-        catch(e){}
 
 
-        status.innerText =
-        "✓ CÂMERA ATIVA — procurando seu olhar...";
+        coordsEl.textContent =
 
-
-        webgazer.setGazeListener(
-
-            function(data){
-
-                if(!data){
-
-                    coords.innerText =
-                    "Câmera ativa — aguardando dados dos olhos...";
-
-                    return;
-
-                }
-
-
-                /* suaviza movimento */
-
-                if(
-                    xSuave === null
-                ){
-
-                    xSuave =
-                    data.x;
-
-                    ySuave =
-                    data.y;
-
-                }
-
-                else{
-
-                    xSuave =
-                    xSuave * 0.75
-                    +
-                    data.x * 0.25;
-
-
-                    ySuave =
-                    ySuave * 0.75
-                    +
-                    data.y * 0.25;
-
-                }
-
-
-                coords.innerText =
-
-                "👁 OLHAR DETECTADO — X: " +
-
-                Math.round(xSuave)
-
-                +
-
-                " | Y: "
-
-                +
-
-                Math.round(ySuave);
-
-
-                pontoOlhar.style.display =
-                "block";
-
-
-                pontoOlhar.style.left =
-                xSuave + "px";
-
-
-                pontoOlhar.style.top =
-                ySuave + "px";
-
-
-                detectarBotao(
-                    xSuave,
-                    ySuave
-                );
-
-            }
-
-        );
-
-    }
-
-    catch(erro){
-
-        console.error(erro);
-
-
-        status.innerText =
-
-        "❌ ERRO: "
+        "👁 OLHAR DETECTADO — X: "
 
         +
 
-        (
-            erro.message
-            ||
-            erro
-        );
+        Math.round(xSuave)
+
+        +
+
+        " | Y: "
+
+        +
+
+        Math.round(ySuave);
 
 
-        iniciar.disabled =
-        false;
-
-    }
-
-}
+        coordsEl.className =
+        "good";
 
 
-/* ============================= */
-/* VER QUAL BOTÃO ESTÁ NO OLHAR   */
-/* ============================= */
+        pontoOlhar.style.left =
+        xSuave + "px";
 
 
-function detectarBotao(
-x,
-y
-){
+        pontoOlhar.style.top =
+        ySuave + "px";
 
-    const elemento =
-    document.elementFromPoint(
-        x,
-        y
+      }
+
     );
 
 
-    const alvo =
-
-    elemento
-
-    ?
-
-    elemento.closest(".area")
-
-    :
-
-    null;
+    setTimeout(
+      iniciarCalibracao,
+      1000
+    );
 
 
-    if(
-        alvo !== alvoAtual
-    ){
+    setTimeout(
+      function(){
 
-        limpar();
+        if(!gazeRecebido){
 
+          coordsEl.textContent =
+          "⚠ A câmera abriu, mas ainda não recebi coordenadas do olhar.";
 
-        if(alvo){
-
-            alvoAtual =
-            alvo;
-
-
-            inicioOlhar =
-            performance.now();
-
-
-            alvo
-            .classList
-            .add("olhando");
+          coordsEl.className =
+          "bad";
 
         }
 
-    }
+      },
 
+      6000
+    );
 
-    if(alvoAtual){
+  }
 
-        const passou =
+  catch(erro){
 
-        performance.now()
+    iniciar.disabled =
+    false;
 
-        -
+    statusEl.className =
+    "bad";
 
-        inicioOlhar;
+    statusEl.textContent =
 
+    "❌ ERRO: "
 
-        const porcentagem =
+    +
 
-        Math.min(
+    (
+      erro.message
+      ||
+      erro
+    );
 
-            100,
-
-            passou
-            /
-            TEMPO
-            *
-            100
-
-        );
-
-
-        alvoAtual
-        .querySelector(".barra")
-        .style.width =
-
-        porcentagem
-        +
-        "%";
-
-
-        if(
-            passou >= TEMPO
-        ){
-
-            const nome =
-            alvoAtual.dataset.nome;
-
-
-            limpar();
-
-
-            selecionar(
-                nome,
-                "OLHAR 👁"
-            );
-
-        }
-
-    }
+  }
 
 }
 
 
-/* ============================= */
-/* LIMPAR SE SAIU DO BOTÃO        */
-/* ============================= */
-
-
-function limpar(){
-
-    if(alvoAtual){
-
-        alvoAtual
-        .classList
-        .remove("olhando");
-
-
-        alvoAtual
-        .querySelector(".barra")
-        .style.width =
-        "0%";
-
-    }
-
-
-    alvoAtual =
-    null;
-
-}
-
-
-/* ============================= */
-
-
-iniciar.addEventListener(
-    "click",
-    ativarOlhar
-);
+iniciar.onclick =
+ativarCamera;
 
 </script>
-
 
 </body>
 </html>
