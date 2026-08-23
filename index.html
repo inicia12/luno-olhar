@@ -1,768 +1,109 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teste WebGazer.js</title>
+  
+  <!-- Carrega a biblioteca WebGazer.js via CDN -->
+  <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
 
-<title>LUNO - Controle pelo Olhar</title>
-
-<!-- CARREGA PRIMEIRO A BIBLIOTECA -->
-<script src="./webgazer.js"></script>
-
-<style>
-* { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f6f7fb;
-    color: #222;
-    text-align: center;
-}
-
-header {
-    background: white;
-    padding: 18px;
-    border-bottom: 1px solid #ddd;
-}
-
-h1 {
-    margin: 0 0 10px;
-}
-
-#status {
-    font-size: 19px;
-    font-weight: bold;
-    margin: 12px;
-}
-
-#coordenadas {
-    font-size: 17px;
-    margin: 10px;
-}
-
-button {
-    cursor: pointer;
-}
-
-#iniciar {
-    padding: 14px 24px;
-    font-size: 18px;
-    border: 2px solid #333;
-    border-radius: 15px;
-    background: white;
-}
-
-#calibracao {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: #f6f7fb;
-    z-index: 9000;
-}
-
-#instrucao {
-    position: absolute;
-    top: 15px;
-    left: 5%;
-    width: 90%;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.ponto {
-    position: absolute;
-    width: 65px;
-    height: 65px;
-    border-radius: 50%;
-    border: 4px solid white;
-    background: #625cda;
-    color: white;
-    font-size: 18px;
-    font-weight: bold;
-    box-shadow: 0 0 0 3px #333;
-}
-
-#p1 { left: 5%; top: 12%; }
-#p2 { left: 46%; top: 12%; }
-#p3 { right: 5%; top: 12%; }
-
-#p4 { left: 5%; top: 46%; }
-#p5 { left: 46%; top: 46%; }
-#p6 { right: 5%; top: 46%; }
-
-#p7 { left: 5%; bottom: 5%; }
-#p8 { left: 46%; bottom: 5%; }
-#p9 { right: 5%; bottom: 5%; }
-
-#teste {
-    display: none;
-    max-width: 1000px;
-    margin: 25px auto;
-    padding: 20px;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.opcao {
-    min-height: 180px;
-    border: 3px solid #333;
-    border-radius: 24px;
-    background: white;
-    font-size: 24px;
-    font-weight: bold;
-    position: relative;
-    overflow: hidden;
-}
-
-.opcao.olhando {
-    outline: 8px solid rgba(98,92,218,.35);
-}
-
-.barra {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0%;
-    height: 16px;
-    background: #625cda;
-}
-
-#cursorOlhar {
-    position: fixed;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 5px solid red;
-    background: rgba(255,255,255,.5);
-    transform: translate(-50%,-50%);
-    pointer-events: none;
-    z-index: 99999;
-    display: none;
-}
-
-#mensagem {
-    position: fixed;
-    inset: 0;
-    background: rgba(255,255,255,.95);
-    z-index: 999999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    font-size: 34px;
-    font-weight: bold;
-    padding: 30px;
-}
-
-/* câmera não pode bloquear a página */
-#webgazerVideoFeed,
-#webgazerVideoContainer,
-#webgazerFaceOverlay,
-#webgazerFaceFeedbackBox,
-#webgazerCanvas {
-    pointer-events: none !important;
-}
-
-@media(max-width:700px) {
-    .grid {
-        grid-template-columns: 1fr;
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      background-color: #f4f4f9;
     }
 
-    .opcao {
-        min-height: 120px;
+    #painel-controle {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px 25px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 10000;
     }
-}
-</style>
+
+    button {
+      padding: 10px 15px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 0 5px;
+      background-color: #007bff;
+      color: white;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #coordenadas {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
 </head>
-
 <body>
 
-<header>
-
-<h1>LUNO — CONTROLE PELO OLHAR</h1>
-
-<div id="status">
-Clique em INICIAR.
-</div>
-
-<div id="coordenadas">
-Aguardando rastreamento...
-</div>
-
-<button id="iniciar">
-INICIAR
-</button>
-
-</header>
-
-
-<!-- CALIBRAÇÃO -->
-
-<div id="calibracao">
-
-<div id="instrucao">
-Olhe para cada bolinha e clique/toque nela 5 vezes.
-Mantenha a cabeça parada.
-</div>
-
-<button class="ponto" id="p1">5</button>
-<button class="ponto" id="p2">5</button>
-<button class="ponto" id="p3">5</button>
-
-<button class="ponto" id="p4">5</button>
-<button class="ponto" id="p5">5</button>
-<button class="ponto" id="p6">5</button>
-
-<button class="ponto" id="p7">5</button>
-<button class="ponto" id="p8">5</button>
-<button class="ponto" id="p9">5</button>
-
-</div>
-
-
-<!-- TESTE -->
-
-<div id="teste">
-
-<h2>Agora use somente os olhos</h2>
-
-<p>
-Olhe para uma opção e mantenha o olhar por aproximadamente 1,5 segundo.
-</p>
-
-<div class="grid">
-
-<button class="opcao" data-nome="ÁREA DO ALUNO">
-ÁREA DO ALUNO
-<div class="barra"></div>
-</button>
-
-<button class="opcao" data-nome="JOGOS">
-JOGOS
-<div class="barra"></div>
-</button>
-
-<button class="opcao" data-nome="MINI BIBLIOTECA">
-MINI BIBLIOTECA
-<div class="barra"></div>
-</button>
-
-<button class="opcao" data-nome="TREINO DO OLHAR">
-TREINO DO OLHAR
-<div class="barra"></div>
-</button>
-
-</div>
-
-</div>
-
-
-<div id="cursorOlhar"></div>
-
-<div id="mensagem"></div>
-
-
-<script>
-
-const iniciar =
-document.getElementById("iniciar");
-
-const status =
-document.getElementById("status");
-
-const coordenadas =
-document.getElementById("coordenadas");
-
-const calibracao =
-document.getElementById("calibracao");
-
-const teste =
-document.getElementById("teste");
-
-const cursorOlhar =
-document.getElementById("cursorOlhar");
-
-const mensagem =
-document.getElementById("mensagem");
-
-
-let calibrado = false;
-
-let alvoAtual = null;
-
-let inicioAlvo = 0;
-
-let xSuave = null;
-
-let ySuave = null;
-
-let bloqueado = false;
-
-
-const TEMPO_SELECAO = 1500;
-
-
-/* ===============================
-   INICIAR WEBGAZER
-================================ */
-
-async function iniciarWebGazer() {
-
-    try {
-
-        if (typeof webgazer === "undefined") {
-
-            status.innerText =
-            "ERRO: webgazer.js não foi carregado.";
-
-            return;
-        }
-
-
-        iniciar.disabled = true;
-
-        status.innerText =
-        "Solicitando acesso à câmera...";
-
-
-        /*
-        IMPORTANTE:
-        não escolhemos tracker.
-        não escolhemos regression.
-        usamos os padrões do próprio WebGazer.
-        */
-
-
-        webgazer
-        .setGazeListener(function(data, elapsedTime) {
-
-            if (data == null) {
-                return;
-            }
-
-
-            let x = data.x;
-            let y = data.y;
-
-
-            /* suavização */
-
-            if (xSuave === null) {
-
-                xSuave = x;
-                ySuave = y;
-
-            } else {
-
-                xSuave =
-                xSuave * 0.75 +
-                x * 0.25;
-
-                ySuave =
-                ySuave * 0.75 +
-                y * 0.25;
-
-            }
-
-
-            coordenadas.innerText =
-
-            "OLHAR ✓  X: " +
-
-            Math.round(xSuave) +
-
-            " | Y: " +
-
-            Math.round(ySuave);
-
-
-            if (calibrado) {
-
-                cursorOlhar.style.display =
-                "block";
-
-                cursorOlhar.style.left =
-                xSuave + "px";
-
-                cursorOlhar.style.top =
-                ySuave + "px";
-
-
-                verificarOpcao(
-                    xSuave,
-                    ySuave
-                );
-
-            }
-
-        });
-
-
-        /*
-        begin() abre câmera E começa
-        a coleta de dados de calibração.
-        */
-
-        await webgazer.begin();
-
-
-        /*
-        Mostra a câmera para ajudar
-        no posicionamento do rosto.
-        */
-
-        try {
-            webgazer.showVideo(true);
-        } catch(e) {}
-
-
-        try {
-            webgazer.showFaceOverlay(true);
-        } catch(e) {}
-
-
-        try {
-            webgazer.showFaceFeedbackBox(true);
-        } catch(e) {}
-
-
-        try {
-            webgazer.showPredictionPoints(false);
-        } catch(e) {}
-
-
-        status.innerText =
-        "CÂMERA ATIVA ✓ — vamos calibrar.";
-
-
-        iniciar.style.display =
-        "none";
-
-
-        setTimeout(
-            iniciarCalibracao,
-            1000
-        );
-
+  <div id="painel-controle">
+    <h2>Rastreamento Ocular com WebGazer</h2>
+    <button onclick="iniciarRastreamento()">Iniciar / Recalibrar</button>
+    <button onclick="pausarRastreamento()">Pausar</button>
+    <div id="coordenadas">Coordenadas: X: 0, Y: 0</div>
+  </div>
+
+  <script>
+    let executando = false;
+
+    async function iniciarRastreamento() {
+      if (executando) return;
+
+      // Configura o ouvinte de coordenadas do olhar
+      await webgazer.setGazeListener((data, elapsedTime) => {
+        if (data == null) return;
+
+        // Arredonda as coordenadas X e Y
+        const x = Math.round(data.x);
+        const y = Math.round(data.y);
+
+        // Exibe os valores na tela
+        document.getElementById('coordenadas').innerText = `Coordenadas: X: ${x}, Y: ${y}`;
+      }).begin();
+
+      // Exibe a caixa da câmera e o ponto vermelho na tela onde o usuário olha
+      webgazer.showPredictionPoints(true);
+      webgazer.showVideoPreview(true);
+
+      executando = true;
     }
 
-    catch(erro) {
-
-        console.error(erro);
-
-        status.innerText =
-        "ERRO: " +
-        (erro.message || String(erro));
-
-        iniciar.disabled =
-        false;
-
+    function pausarRastreamento() {
+      if (!executando) return;
+      
+      webgazer.pause();
+      executando = false;
+      document.getElementById('coordenadas').innerText = "Rastreamento pausado.";
     }
 
-}
-
-
-/* ===============================
-   CALIBRAÇÃO REAL
-================================ */
-
-function iniciarCalibracao() {
-
-    calibracao.style.display =
-    "block";
-
-
-    const pontos =
-    document.querySelectorAll(".ponto");
-
-
-    let pontosConcluidos = 0;
-
-
-    pontos.forEach(function(ponto) {
-
-        ponto.dataset.contagem =
-        "0";
-
-
-        ponto.innerText =
-        "5";
-
-
-        ponto.onclick =
-        function(event) {
-
-            /*
-            ESTE CLIQUE É IMPORTANTE.
-
-            O WebGazer já está rodando.
-
-            Portanto ele usa o clique
-            e a posição da tela como
-            dado de calibração.
-            */
-
-
-            let quantidade =
-            Number(
-                ponto.dataset.contagem
-            );
-
-
-            quantidade++;
-
-
-            ponto.dataset.contagem =
-            String(quantidade);
-
-
-            ponto.innerText =
-            String(
-                Math.max(
-                    0,
-                    5 - quantidade
-                )
-            );
-
-
-            if (quantidade >= 5) {
-
-                ponto.disabled =
-                true;
-
-                ponto.style.opacity =
-                "0.2";
-
-
-                pontosConcluidos++;
-
-
-                if (
-                    pontosConcluidos ===
-                    pontos.length
-                ) {
-
-                    finalizarCalibracao();
-
-                }
-
-            }
-
-        };
-
-    });
-
-}
-
-
-/* ===============================
-   TERMINOU CALIBRAÇÃO
-================================ */
-
-function finalizarCalibracao() {
-
-    calibracao.style.display =
-    "none";
-
-
-    teste.style.display =
-    "block";
-
-
-    calibrado =
-    true;
-
-
-    cursorOlhar.style.display =
-    "block";
-
-
-    status.innerText =
-    "CALIBRADO ✓ — agora use somente os olhos.";
-
-
-    coordenadas.innerText =
-    "Mova o olhar pela tela.";
-
-}
-
-
-/* ===============================
-   DESCOBRIR ONDE ESTÁ OLHANDO
-================================ */
-
-function verificarOpcao(x, y) {
-
-    const elemento =
-    document.elementFromPoint(
-        x,
-        y
-    );
-
-
-    const opcao =
-    elemento
-    ?
-    elemento.closest(".opcao")
-    :
-    null;
-
-
-    if (opcao !== alvoAtual) {
-
-        limparAlvo();
-
-
-        if (opcao) {
-
-            alvoAtual =
-            opcao;
-
-
-            inicioAlvo =
-            performance.now();
-
-
-            opcao.classList.add(
-                "olhando"
-            );
-
-        }
-
-    }
-
-
-    if (alvoAtual) {
-
-        const tempo =
-        performance.now()
-        -
-        inicioAlvo;
-
-
-        const percentual =
-        Math.min(
-            100,
-            tempo /
-            TEMPO_SELECAO *
-            100
-        );
-
-
-        alvoAtual
-        .querySelector(".barra")
-        .style.width =
-        percentual + "%";
-
-
-        if (
-            tempo >=
-            TEMPO_SELECAO
-        ) {
-
-            const nome =
-            alvoAtual.dataset.nome;
-
-
-            limparAlvo();
-
-
-            selecionarPeloOlhar(
-                nome
-            );
-
-        }
-
-    }
-
-}
-
-
-/* ===============================
-   LIMPAR ALVO
-================================ */
-
-function limparAlvo() {
-
-    if (alvoAtual) {
-
-        alvoAtual
-        .classList
-        .remove("olhando");
-
-
-        alvoAtual
-        .querySelector(".barra")
-        .style.width =
-        "0%";
-
-    }
-
-
-    alvoAtual =
-    null;
-
-}
-
-
-/* ===============================
-   SELEÇÃO
-================================ */
-
-function selecionarPeloOlhar(nome) {
-
-    if (bloqueado)
-        return;
-
-
-    bloqueado =
-    true;
-
-
-    mensagem.innerHTML =
-
-    "👁 ✓ " +
-
-    nome +
-
-    "<br><br>" +
-
-    "<span style='font-size:22px'>" +
-
-    "SELECIONADO PELO OLHAR" +
-
-    "</span>";
-
-
-    mensagem.style.display =
-    "flex";
-
-
-    setTimeout(function() {
-
-        mensagem.style.display =
-        "none";
-
-        bloqueado =
-        false;
-
-    }, 1500);
-
-}
-
-
-/* =============================== */
-
-iniciar.addEventListener(
-    "click",
-    iniciarWebGazer
-);
-
-</script>
+    // Inicia o WebGazer assim que a página carregar
+    window.onload = () => {
+      iniciarRastreamento();
+    };
+
+    // Garante o fechamento da câmera ao fechar ou atualizar a página
+    window.onbeforeunload = () => {
+      webgazer.end();
+    };
+  </script>
 
 </body>
 </html>
