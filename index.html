@@ -1,58 +1,61 @@
 <!DOCTYPE html>
-
 <html>
-
 <head>
-
     <meta charset="UTF-8">
+    <title>Teste WebGazer</title>
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>LUNO - WebGazer</title>
-
-    <script src="webgazer.js"></script>
-
+    <script src="./webgazer.js"></script>
 </head>
-
 
 <body>
 
-    <h1>LUNO — TESTE DO OLHAR</h1>
+<h1>TESTE WEBGAZER</h1>
 
-    <h2 id="status">
-        Iniciando WebGazer...
-    </h2>
+<p id="status">Carregando...</p>
 
-    <h2 id="resultado">
-        Aguardando o olhar...
-    </h2>
+<h2 id="resultado">
+X: aguardando | Y: aguardando
+</h2>
 
+<button id="iniciar">
+ABRIR CÂMERA
+</button>
 
-    <script>
+<script>
 
-        webgazer.setGazeListener(
-            function(data, elapsedTime) {
+const status = document.getElementById("status");
+const resultado = document.getElementById("resultado");
+const iniciar = document.getElementById("iniciar");
 
-                if (data == null) {
-                    return;
-                }
+iniciar.onclick = function () {
 
-                var xprediction = data.x;
-                var yprediction = data.y;
+    if (typeof webgazer === "undefined") {
+        status.innerText = "ERRO: WebGazer não carregou";
+        return;
+    }
 
-                document.getElementById("status").innerHTML =
-                    "RASTREAMENTO FUNCIONANDO";
+    status.innerText = "WebGazer carregou. Iniciando...";
 
-                document.getElementById("resultado").innerHTML =
-                    "X: " + Math.round(xprediction) +
-                    " | Y: " + Math.round(yprediction);
+    webgazer
+        .setGazeListener(function(data, elapsedTime) {
 
+            if (data == null) {
+                resultado.innerText =
+                    "WebGazer ativo, mas ainda sem coordenadas";
+                return;
             }
-        ).begin();
 
-    </script>
+            resultado.innerText =
+                "X: " + Math.round(data.x) +
+                " | Y: " + Math.round(data.y);
+
+        })
+        .begin();
+
+    status.innerText = "WebGazer iniciado";
+};
+
+</script>
 
 </body>
-
 </html>
