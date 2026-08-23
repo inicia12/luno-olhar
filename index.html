@@ -1,288 +1,187 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>LUNO - Teste do Olhar</title>
+    <title>LUNO - Teste WebGazer</title>
 
-<script src="./webgazer.js"></script>
+    <!-- WEBGAZER CARREGADO DIRETAMENTE NO INDEX -->
+    <script src="https://cdn.jsdelivr.net/npm/webgazer@3.5.3/dist/webgazer.js"></script>
 
-<style>
-body{<script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f5f6fb;
+            padding: 30px;
+        }
 
-<script>
+        h1 {
+            margin-bottom: 15px;
+        }
 
-  window.onload = function() {
+        #status {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 20px;
+        }
 
-    webgazer.begin();
+        #coordenadas {
+            font-size: 25px;
+            margin: 20px;
+        }
 
-  };
+        #ponto {
+            position: fixed;
+            width: 35px;
+            height: 35px;
+            background: red;
+            border: 4px solid white;
+            box-shadow: 0 0 0 3px black;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 999999;
+            display: none;
+        }
 
-</script>
-    font-family:Arial,sans-serif;
-    text-align:center;
-    background:#f5f6fb;
-    margin:0;
-    padding:20px;
-}
-
-h1{
-    margin-bottom:10px;
-}
-
-#status{
-    font-size:20px;
-    font-weight:bold;
-    margin:20px;
-}
-
-#dados{
-    font-size:22px;
-    margin:20px;
-}
-
-button{
-    font-size:20px;
-    padding:15px 25px;
-    border:2px solid #333;
-    border-radius:15px;
-    background:white;
-}
-
-#ponto{
-    position:fixed;
-
-    width:40px;
-    height:40px;
-
-    border-radius:50%;
-
-    background:red;
-
-    border:5px solid white;
-
-    box-shadow:0 0 0 3px black;
-
-    transform:translate(-50%,-50%);
-
-    pointer-events:none;
-
-    z-index:999999;
-
-    display:none;
-}
-
-#teste{
-    margin:30px auto;
-    max-width:700px;
-
-    background:white;
-
-    border:3px solid #333;
-
-    border-radius:25px;
-
-    padding:40px 20px;
-
-    font-size:22px;
-}
-
-#webgazerVideoContainer,
-#webgazerVideoFeed,
-#webgazerFaceOverlay,
-#webgazerFaceFeedbackBox{
-    pointer-events:none !important;
-}
-</style>
-
+        button {
+            font-size: 20px;
+            padding: 15px 25px;
+            border-radius: 15px;
+            border: 2px solid #333;
+            background: white;
+            cursor: pointer;
+        }
+    </style>
 </head>
+
 
 <body>
 
-<h1>
-LUNO — TESTE MÍNIMO DO OLHAR
-</h1>
+    <h1>LUNO — TESTE REAL DO OLHAR</h1>
 
-<div id="status">
-Clique no botão abaixo.
-</div>
+    <div id="status">
+        WebGazer carregando...
+    </div>
 
-<button id="iniciar">
-ATIVAR CÂMERA
-</button>
+    <button id="iniciar">
+        ATIVAR CÂMERA
+    </button>
 
-<div id="dados">
-Ainda não recebi coordenadas.
-</div>
+    <div id="coordenadas">
+        Ainda sem dados do olhar.
+    </div>
 
-<div id="teste">
-Depois que a câmera abrir, mova o olhar pela tela.
-<br><br>
-O ponto vermelho deverá mudar de posição.
-</div>
-
-<div id="ponto"></div>
+    <div id="ponto"></div>
 
 
-<script>
+    <script>
 
-const status =
-document.getElementById("status");
+        const status =
+            document.getElementById("status");
 
-const dados =
-document.getElementById("dados");
+        const coordenadas =
+            document.getElementById("coordenadas");
 
-const ponto =
-document.getElementById("ponto");
+        const ponto =
+            document.getElementById("ponto");
 
-const iniciar =
-document.getElementById("iniciar");
-
-
-async function iniciarTeste(){
-
-    try{
-
-        if(typeof webgazer === "undefined"){
-
-            status.innerText =
-            "ERRO: webgazer.js não carregou.";
-
-            return;
-        }
+        const iniciar =
+            document.getElementById("iniciar");
 
 
-        status.innerText =
-        "WebGazer carregado. Solicitando câmera...";
+        window.addEventListener("load", function () {
 
+            if (typeof webgazer !== "undefined") {
 
-        /*
-        Esta é a parte principal.
+                status.innerText =
+                    "✓ WEBGAZER CARREGADO";
 
-        Sem escolher tracker.
-        Sem escolher regression.
-        Sem calibração personalizada.
-        */
+            } else {
 
-
-        webgazer.setGazeListener(
-
-            function(data, elapsedTime){
-
-                if(data == null){
-
-                    dados.innerText =
-                    "Câmera ativa, mas ainda sem previsão do olhar.";
-
-                    return;
-                }
-
-
-                const x =
-                data.x;
-
-                const y =
-                data.y;
-
-
-                dados.innerText =
-
-                "OLHAR DETECTADO ✓  X: "
-
-                +
-
-                Math.round(x)
-
-                +
-
-                "   Y: "
-
-                +
-
-                Math.round(y);
-
-
-                ponto.style.display =
-                "block";
-
-
-                ponto.style.left =
-                x + "px";
-
-
-                ponto.style.top =
-                y + "px";
+                status.innerText =
+                    "❌ WEBGAZER NÃO CARREGOU";
 
             }
 
-        );
+        });
 
 
-        await webgazer.begin();
+        iniciar.addEventListener("click", function () {
+
+            if (typeof webgazer === "undefined") {
+
+                status.innerText =
+                    "❌ WebGazer não está disponível.";
+
+                return;
+            }
 
 
-        status.innerText =
-        "CÂMERA ATIVA ✓";
+            status.innerText =
+                "Solicitando câmera...";
 
 
-        /*
-        Vamos mostrar o vídeo
-        para confirmar que está funcionando.
-        */
+            webgazer
+                .setGazeListener(function (data, elapsedTime) {
 
-        if(webgazer.showVideo){
+                    if (data == null) {
 
-            webgazer.showVideo(true);
+                        return;
 
-        }
+                    }
 
 
-        /*
-        O próprio WebGazer pode mostrar
-        sua previsão na tela.
-        */
-
-        if(webgazer.showPredictionPoints){
-
-            webgazer.showPredictionPoints(true);
-
-        }
+                    const x = data.x;
+                    const y = data.y;
 
 
-        iniciar.style.display =
-        "none";
-
-    }
-
-    catch(erro){
-
-        console.error(erro);
-
-
-        status.innerText =
-
-        "ERRO: "
-
-        +
-
-        (
-            erro.message
-            ||
-            String(erro)
-        );
-
-    }
-
-}
+                    coordenadas.innerText =
+                        "👁 X: "
+                        +
+                        Math.round(x)
+                        +
+                        " | Y: "
+                        +
+                        Math.round(y);
 
 
-iniciar.addEventListener(
-    "click",
-    iniciarTeste
-);
+                    ponto.style.display =
+                        "block";
 
-</script>
+
+                    ponto.style.left =
+                        x + "px";
+
+
+                    ponto.style.top =
+                        y + "px";
+
+                })
+                .begin()
+                .then(function () {
+
+                    status.innerText =
+                        "✓ CÂMERA ATIVA — OLHE PARA A TELA";
+
+                })
+                .catch(function (erro) {
+
+                    status.innerText =
+                        "❌ ERRO: "
+                        +
+                        erro.message;
+
+                    console.error(erro);
+
+                });
+
+        });
+
+    </script>
 
 </body>
 </html>
