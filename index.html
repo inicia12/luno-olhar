@@ -2,108 +2,89 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teste WebGazer.js</title>
-  
-  <!-- Carrega a biblioteca WebGazer.js via CDN -->
+  <title>Teste de Controle pelo Olhar</title>
   <script src="https://webgazer.cs.brown.edu/webgazer.js"></script>
-
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-      background-color: #f4f4f9;
-    }
-
-    #painel-controle {
-      position: fixed;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(255, 255, 255, 0.9);
-      padding: 15px 25px;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      z-index: 10000;
-    }
-
-    button {
-      padding: 10px 15px;
-      font-size: 14px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 0 5px;
+    body { font-family: sans-serif; text-align: center; padding-top: 100px; }
+    
+    /* Botão interativo acionado pelo olhar */
+    .botao-olhar {
+      width: 200px;
+      height: 100px;
+      font-size: 18px;
       background-color: #007bff;
       color: white;
-      transition: background 0.2s;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
     }
 
-    button:hover {
-      background-color: #0056b3;
-    }
-
-    #coordenadas {
-      margin-top: 10px;
-      font-weight: bold;
-      color: #333;
+    /* Barra de progresso visual do tempo de fixação */
+    #progresso {
+      position: absolute;
+      bottom: 0; left: 0; height: 10px;
+      background-color: #28a745;
+      width: 0%;
+      transition: width 0.1s linear;
     }
   </style>
 </head>
 <body>
 
-  <div id="painel-controle">
-    <h2>Rastreamento Ocular com WebGazer</h2>
-    <button onclick="iniciarRastreamento()">Iniciar / Recalibrar</button>
-    <button onclick="pausarRastreamento()">Pausar</button>
-    <div id="coordenadas">Coordenadas: X: 0, Y: 0</div>
-  </div>
+  <h1>Olhe para o botão para clicar!</h1>
+  <button id="meuBotao" class="botao-olhar">
+    Fixe o olhar aqui
+    <div id="progresso"></div>
+  </button>
 
   <script>
-    let executando = false;
+    let tempoFixado = 0;
+    const tempoNecessario = 15; // Aproximadamente 1.5 segundos de fixação
+    const botao = document.getElementById('meuBotao');
+    const barraProgresso = document.getElementById('progresso');
 
-    async function iniciarRastreamento() {
-      if (executando) return;
-
-      // Configura o ouvinte de coordenadas do olhar
+    window.onload = async () => {
       await webgazer.setGazeListener((data, elapsedTime) => {
-        if (data == null) return;
+        if (!data) return;
 
-        // Arredonda as coordenadas X e Y
-        const x = Math.round(data.x);
-        const y = Math.round(data.y);
+        // Pega a posição do botão na tela
+        const rect = botao.getBoundingClientRect();
 
-        // Exibe os valores na tela
-        document.getElementById('coordenadas').innerText = `Coordenadas: X: ${x}, Y: ${y}`;
+        // Verifica se o olhar (data.x, data.y) está dentro da área do botão
+        const olhandoParaOBotao = (
+          data.x >= rect.left &&
+          data.x <= rect.right &&
+          data.y >= rect.top &&
+          data.y <= rect.bottom
+        );
+
+        if (olhandoParaOBotao) {
+          tempoFixado++;
+          let porcentagem = (tempoFixado / tempoNecessario) * 100;
+          barraProgresso.style.width = Math.min(porcentagem, 100) + '%';
+
+          // Dispara a ação de clique se o olhar permanecer o tempo suficiente
+          if (tempoFixado >= tempoNecessario) {
+            botao.click();
+            tempoFixado = 0; // Reseta
+          }
+        } else {
+          // Se desviar o olhar, reseta a contagem
+          tempoFixado = 0;
+          barraProgresso.style.width = '0%';
+        }
       }).begin();
 
-      // Exibe a caixa da câmera e o ponto vermelho na tela onde o usuário olha
       webgazer.showPredictionPoints(true);
-      webgazer.showVideoPreview(true);
-
-      executando = true;
-    }
-
-    function pausarRastreamento() {
-      if (!executando) return;
-      
-      webgazer.pause();
-      executando = false;
-      document.getElementById('coordenadas').innerText = "Rastreamento pausado.";
-    }
-
-    // Inicia o WebGazer assim que a página carregar
-    window.onload = () => {
-      iniciarRastreamento();
     };
 
-    // Garante o fechamento da câmera ao fechar ou atualizar a página
-    window.onbeforeunload = () => {
-      webgazer.end();
-    };
+    // Ação acionada pelo olhar
+    botao.addEventListener('click', () => {
+      alert('Ação executada com o olhar!');
+      barraProgresso.style.width = '0%';
+    });
   </script>
-
 </body>
 </html>
