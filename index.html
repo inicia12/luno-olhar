@@ -3,482 +3,274 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LUNO — Calibração do Olhar</title>
+
+<title>LUNO - Teste do Olhar</title>
 
 <script src="./webgazer.js"></script>
 
 <style>
-*{box-sizing:border-box}
-
 body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f6f7fb;
-  color:#222;
-  text-align:center;
-}
-
-header{
-  background:#fff;
-  border-bottom:1px solid #ddd;
-  padding:18px;
+    font-family:Arial,sans-serif;
+    text-align:center;
+    background:#f5f6fb;
+    margin:0;
+    padding:20px;
 }
 
 h1{
-  margin:0 0 10px;
+    margin-bottom:10px;
 }
 
 #status{
-  font-size:18px;
-  font-weight:bold;
-  margin:10px 0;
+    font-size:20px;
+    font-weight:bold;
+    margin:20px;
 }
 
-#coords{
-  font-size:16px;
-  margin:8px 0 14px;
+#dados{
+    font-size:22px;
+    margin:20px;
 }
 
 button{
-  font-size:18px;
-  padding:12px 20px;
-  border:2px solid #333;
-  border-radius:14px;
-  background:#fff;
-  cursor:pointer;
+    font-size:20px;
+    padding:15px 25px;
+    border:2px solid #333;
+    border-radius:15px;
+    background:white;
 }
 
-#pontoOlhar{
-  position:fixed;
-  width:34px;
-  height:34px;
-  border:5px solid red;
-  border-radius:50%;
-  background:rgba(255,255,255,.5);
-  pointer-events:none;
-  transform:translate(-50%,-50%);
-  z-index:99999;
-  display:none;
+#ponto{
+    position:fixed;
+
+    width:40px;
+    height:40px;
+
+    border-radius:50%;
+
+    background:red;
+
+    border:5px solid white;
+
+    box-shadow:0 0 0 3px black;
+
+    transform:translate(-50%,-50%);
+
+    pointer-events:none;
+
+    z-index:999999;
+
+    display:none;
 }
 
-#calibracao{
-  position:fixed;
-  inset:0;
-  background:#f6f7fb;
-  z-index:9999;
-  display:none;
+#teste{
+    margin:30px auto;
+    max-width:700px;
+
+    background:white;
+
+    border:3px solid #333;
+
+    border-radius:25px;
+
+    padding:40px 20px;
+
+    font-size:22px;
 }
 
-#instrucao{
-  position:absolute;
-  top:16px;
-  left:0;
-  right:0;
-  font-size:20px;
-  font-weight:bold;
-  padding:0 20px;
-}
-
-.ponto{
-  position:absolute;
-  width:64px;
-  height:64px;
-  border-radius:50%;
-  background:#625cda;
-  color:white;
-  border:5px solid white;
-  box-shadow:0 0 0 3px #333;
-  font-weight:bold;
-  font-size:18px;
-}
-
-#p1{left:6%;top:13%}
-#p2{left:47%;top:13%}
-#p3{right:6%;top:13%}
-
-#p4{left:6%;top:47%}
-#p5{left:47%;top:47%}
-#p6{right:6%;top:47%}
-
-#p7{left:6%;bottom:7%}
-#p8{left:47%;bottom:7%}
-#p9{right:6%;bottom:7%}
-
-#areaTeste{
-  max-width:900px;
-  margin:30px auto;
-  padding:20px;
-}
-
-.caixa{
-  border:3px solid #333;
-  border-radius:24px;
-  background:#fff;
-  min-height:180px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:25px;
-  font-weight:bold;
-}
-
-.good{color:green}
-.bad{color:#b00020}
-
-/* impede o vídeo/overlays do WebGazer de bloquear a página */
 #webgazerVideoContainer,
 #webgazerVideoFeed,
 #webgazerFaceOverlay,
 #webgazerFaceFeedbackBox{
-  pointer-events:none !important;
+    pointer-events:none !important;
 }
 </style>
+
 </head>
 
 <body>
 
-<header>
-  <h1>LUNO — Teste de Rastreamento do Olhar</h1>
+<h1>
+LUNO — TESTE MÍNIMO DO OLHAR
+</h1>
 
-  <div id="status">
-    Clique em ATIVAR CÂMERA.
-  </div>
-
-  <div id="coords">
-    Olhar: aguardando dados...
-  </div>
-
-  <button id="iniciar">
-    ATIVAR CÂMERA
-  </button>
-</header>
-
-<div id="areaTeste">
-  <div class="caixa">
-    Depois da calibração, olhe para diferentes partes da tela e veja se o ponto vermelho acompanha.
-  </div>
+<div id="status">
+Clique no botão abaixo.
 </div>
 
-<div id="pontoOlhar"></div>
+<button id="iniciar">
+ATIVAR CÂMERA
+</button>
 
-<div id="calibracao">
-
-  <div id="instrucao">
-    Olhe para cada ponto e toque/clique nele 5 vezes.
-  </div>
-
-  <button class="ponto" id="p1">5</button>
-  <button class="ponto" id="p2">5</button>
-  <button class="ponto" id="p3">5</button>
-
-  <button class="ponto" id="p4">5</button>
-  <button class="ponto" id="p5">5</button>
-  <button class="ponto" id="p6">5</button>
-
-  <button class="ponto" id="p7">5</button>
-  <button class="ponto" id="p8">5</button>
-  <button class="ponto" id="p9">5</button>
-
+<div id="dados">
+Ainda não recebi coordenadas.
 </div>
+
+<div id="teste">
+Depois que a câmera abrir, mova o olhar pela tela.
+<br><br>
+O ponto vermelho deverá mudar de posição.
+</div>
+
+<div id="ponto"></div>
+
 
 <script>
 
-const statusEl =
+const status =
 document.getElementById("status");
 
-const coordsEl =
-document.getElementById("coords");
+const dados =
+document.getElementById("dados");
+
+const ponto =
+document.getElementById("ponto");
 
 const iniciar =
 document.getElementById("iniciar");
 
-const calibracao =
-document.getElementById("calibracao");
 
-const pontoOlhar =
-document.getElementById("pontoOlhar");
+async function iniciarTeste(){
 
-let xSuave = null;
-let ySuave = null;
+    try{
 
-let gazeRecebido = false;
+        if(typeof webgazer === "undefined"){
+
+            status.innerText =
+            "ERRO: webgazer.js não carregou.";
+
+            return;
+        }
 
 
-function iniciarCalibracao(){
+        status.innerText =
+        "WebGazer carregado. Solicitando câmera...";
 
-  calibracao.style.display =
-  "block";
 
-  pontoOlhar.style.display =
-  "none";
+        /*
+        Esta é a parte principal.
 
-  const pontos =
-  document.querySelectorAll(".ponto");
+        Sem escolher tracker.
+        Sem escolher regression.
+        Sem calibração personalizada.
+        */
 
-  let concluidos = 0;
 
-  pontos.forEach(ponto=>{
+        webgazer.setGazeListener(
 
-    ponto.dataset.cliques =
-    "0";
+            function(data, elapsedTime){
 
-    ponto.textContent =
-    "5";
+                if(data == null){
 
-    ponto.disabled =
-    false;
+                    dados.innerText =
+                    "Câmera ativa, mas ainda sem previsão do olhar.";
 
-    ponto.style.opacity =
-    "1";
+                    return;
+                }
 
-    ponto.onclick =
-    function(){
 
-      let n =
-      Number(
-        ponto.dataset.cliques
-      );
+                const x =
+                data.x;
 
-      n++;
+                const y =
+                data.y;
 
-      ponto.dataset.cliques =
-      String(n);
 
-      ponto.textContent =
-      String(
-        Math.max(
-          0,
-          5-n
-        )
-      );
+                dados.innerText =
 
-      if(n >= 5){
+                "OLHAR DETECTADO ✓  X: "
 
-        ponto.disabled =
-        true;
+                +
 
-        ponto.style.opacity =
-        ".18";
+                Math.round(x)
 
-        concluidos++;
+                +
 
-        if(
-          concluidos ===
-          pontos.length
-        ){
+                "   Y: "
 
-          calibracao.style.display =
-          "none";
+                +
 
-          pontoOlhar.style.display =
-          "block";
+                Math.round(y);
 
-          statusEl.textContent =
-          "✓ CALIBRAÇÃO CONCLUÍDA — agora mova apenas os olhos.";
 
-          statusEl.className =
-          "good";
+                ponto.style.display =
+                "block";
+
+
+                ponto.style.left =
+                x + "px";
+
+
+                ponto.style.top =
+                y + "px";
+
+            }
+
+        );
+
+
+        await webgazer.begin();
+
+
+        status.innerText =
+        "CÂMERA ATIVA ✓";
+
+
+        /*
+        Vamos mostrar o vídeo
+        para confirmar que está funcionando.
+        */
+
+        if(webgazer.showVideo){
+
+            webgazer.showVideo(true);
 
         }
 
-      }
 
-    };
+        /*
+        O próprio WebGazer pode mostrar
+        sua previsão na tela.
+        */
 
-  });
+        if(webgazer.showPredictionPoints){
+
+            webgazer.showPredictionPoints(true);
+
+        }
+
+
+        iniciar.style.display =
+        "none";
+
+    }
+
+    catch(erro){
+
+        console.error(erro);
+
+
+        status.innerText =
+
+        "ERRO: "
+
+        +
+
+        (
+            erro.message
+            ||
+            String(erro)
+        );
+
+    }
 
 }
 
 
-async function ativarCamera(){
-
-  if(
-    typeof webgazer
-    ===
-    "undefined"
-  ){
-
-    statusEl.textContent =
-    "❌ WebGazer não carregou.";
-
-    statusEl.className =
-    "bad";
-
-    return;
-  }
-
-
-  try{
-
-    iniciar.disabled =
-    true;
-
-    statusEl.textContent =
-    "Solicitando acesso à câmera...";
-
-
-    webgazer
-    .saveDataAcrossSessions(false)
-    .showPredictionPoints(false);
-
-
-    await webgazer.begin();
-
-
-    try{
-      webgazer.showVideoPreview(true);
-    }catch(e){}
-
-
-    try{
-      webgazer.showFaceOverlay(false);
-    }catch(e){}
-
-
-    try{
-      webgazer.showFaceFeedbackBox(false);
-    }catch(e){}
-
-
-    statusEl.textContent =
-    "✓ CÂMERA ABERTA — recebendo dados do olhar...";
-
-    statusEl.className =
-    "good";
-
-
-    webgazer.setGazeListener(
-
-      function(data){
-
-        if(!data){
-
-          coordsEl.textContent =
-          "Câmera ativa, mas ainda sem coordenadas.";
-
-          return;
-
-        }
-
-
-        gazeRecebido =
-        true;
-
-
-        if(
-          xSuave === null
-        ){
-
-          xSuave =
-          data.x;
-
-          ySuave =
-          data.y;
-
-        }
-
-        else{
-
-          xSuave =
-          xSuave * 0.75
-          +
-          data.x * 0.25;
-
-
-          ySuave =
-          ySuave * 0.75
-          +
-          data.y * 0.25;
-
-        }
-
-
-        coordsEl.textContent =
-
-        "👁 OLHAR DETECTADO — X: "
-
-        +
-
-        Math.round(xSuave)
-
-        +
-
-        " | Y: "
-
-        +
-
-        Math.round(ySuave);
-
-
-        coordsEl.className =
-        "good";
-
-
-        pontoOlhar.style.left =
-        xSuave + "px";
-
-
-        pontoOlhar.style.top =
-        ySuave + "px";
-
-      }
-
-    );
-
-
-    setTimeout(
-      iniciarCalibracao,
-      1000
-    );
-
-
-    setTimeout(
-      function(){
-
-        if(!gazeRecebido){
-
-          coordsEl.textContent =
-          "⚠ A câmera abriu, mas ainda não recebi coordenadas do olhar.";
-
-          coordsEl.className =
-          "bad";
-
-        }
-
-      },
-
-      6000
-    );
-
-  }
-
-  catch(erro){
-
-    iniciar.disabled =
-    false;
-
-    statusEl.className =
-    "bad";
-
-    statusEl.textContent =
-
-    "❌ ERRO: "
-
-    +
-
-    (
-      erro.message
-      ||
-      erro
-    );
-
-  }
-
-}
-
-
-iniciar.onclick =
-ativarCamera;
+iniciar.addEventListener(
+    "click",
+    iniciarTeste
+);
 
 </script>
 
