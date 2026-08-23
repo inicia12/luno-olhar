@@ -1,187 +1,58 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+
+<html>
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>LUNO - Teste WebGazer</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <!-- WEBGAZER CARREGADO DIRETAMENTE NO INDEX -->
-    <script src="https://cdn.jsdelivr.net/npm/webgazer@3.5.3/dist/webgazer.js"></script>
+    <title>LUNO - WebGazer</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: #f5f6fb;
-            padding: 30px;
-        }
+    <script src="webgazer.js"></script>
 
-        h1 {
-            margin-bottom: 15px;
-        }
-
-        #status {
-            font-size: 22px;
-            font-weight: bold;
-            margin: 20px;
-        }
-
-        #coordenadas {
-            font-size: 25px;
-            margin: 20px;
-        }
-
-        #ponto {
-            position: fixed;
-            width: 35px;
-            height: 35px;
-            background: red;
-            border: 4px solid white;
-            box-shadow: 0 0 0 3px black;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 999999;
-            display: none;
-        }
-
-        button {
-            font-size: 20px;
-            padding: 15px 25px;
-            border-radius: 15px;
-            border: 2px solid #333;
-            background: white;
-            cursor: pointer;
-        }
-    </style>
 </head>
 
 
 <body>
 
-    <h1>LUNO — TESTE REAL DO OLHAR</h1>
+    <h1>LUNO — TESTE DO OLHAR</h1>
 
-    <div id="status">
-        WebGazer carregando...
-    </div>
+    <h2 id="status">
+        Iniciando WebGazer...
+    </h2>
 
-    <button id="iniciar">
-        ATIVAR CÂMERA
-    </button>
-
-    <div id="coordenadas">
-        Ainda sem dados do olhar.
-    </div>
-
-    <div id="ponto"></div>
+    <h2 id="resultado">
+        Aguardando o olhar...
+    </h2>
 
 
     <script>
 
-        const status =
-            document.getElementById("status");
+        webgazer.setGazeListener(
+            function(data, elapsedTime) {
 
-        const coordenadas =
-            document.getElementById("coordenadas");
+                if (data == null) {
+                    return;
+                }
 
-        const ponto =
-            document.getElementById("ponto");
+                var xprediction = data.x;
+                var yprediction = data.y;
 
-        const iniciar =
-            document.getElementById("iniciar");
+                document.getElementById("status").innerHTML =
+                    "RASTREAMENTO FUNCIONANDO";
 
-
-        window.addEventListener("load", function () {
-
-            if (typeof webgazer !== "undefined") {
-
-                status.innerText =
-                    "✓ WEBGAZER CARREGADO";
-
-            } else {
-
-                status.innerText =
-                    "❌ WEBGAZER NÃO CARREGOU";
+                document.getElementById("resultado").innerHTML =
+                    "X: " + Math.round(xprediction) +
+                    " | Y: " + Math.round(yprediction);
 
             }
-
-        });
-
-
-        iniciar.addEventListener("click", function () {
-
-            if (typeof webgazer === "undefined") {
-
-                status.innerText =
-                    "❌ WebGazer não está disponível.";
-
-                return;
-            }
-
-
-            status.innerText =
-                "Solicitando câmera...";
-
-
-            webgazer
-                .setGazeListener(function (data, elapsedTime) {
-
-                    if (data == null) {
-
-                        return;
-
-                    }
-
-
-                    const x = data.x;
-                    const y = data.y;
-
-
-                    coordenadas.innerText =
-                        "👁 X: "
-                        +
-                        Math.round(x)
-                        +
-                        " | Y: "
-                        +
-                        Math.round(y);
-
-
-                    ponto.style.display =
-                        "block";
-
-
-                    ponto.style.left =
-                        x + "px";
-
-
-                    ponto.style.top =
-                        y + "px";
-
-                })
-                .begin()
-                .then(function () {
-
-                    status.innerText =
-                        "✓ CÂMERA ATIVA — OLHE PARA A TELA";
-
-                })
-                .catch(function (erro) {
-
-                    status.innerText =
-                        "❌ ERRO: "
-                        +
-                        erro.message;
-
-                    console.error(erro);
-
-                });
-
-        });
+        ).begin();
 
     </script>
 
 </body>
+
 </html>
